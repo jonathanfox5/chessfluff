@@ -1,0 +1,62 @@
+[project]
+name = "chessfluff"
+version = "0.0.1a1"
+description = "Application that pulls various stats for a user from chess.com using the public API."
+readme = "README.md"
+authors = [
+    { name = "Jonathan Fox", email = "32023524+jonathanfox5@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx[http2]>=0.28.1",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "python-dotenv>=1.2.1",
+    "rich>=14.2.0",
+]
+
+classifiers = [
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Games/Entertainment",
+    "Topic :: Games/Entertainment :: Board Games",
+    "Topic :: Education",
+]
+keywords = [
+    "chess",
+    "chess.com",
+    "api",
+]
+
+[project.scripts]
+chessfluff = "chessfluff.main:main"
+
+[project.urls]
+homepage = "https://github.com/jonathanfox5/chessfluff"
+repository = "https://github.com/jonathanfox5/chessfluff"
+documentation = "https://github.com/jonathanfox5/chessfluff"
+download = "https://github.com/jonathanfox5/chessfluff/releases"
+
+[build-system]
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.mypy]
+disable_error_code = "import-untyped"
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+target-version = "py313"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+extend-select = ["I"]

@@ -1,0 +1,5 @@
+__author__ = "Jonathan Fox"
+__copyright__ = "Copyright 2025, Jonathan Fox"
+__license__ = "GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html"
+__full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
+__version__ = "0.0.1a1"
