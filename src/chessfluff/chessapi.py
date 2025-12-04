@@ -10,7 +10,7 @@ from chessfluff.requester import Requester
 class ChessAPI:
     """Class for querying the chess.com public api"""
 
-    def __init__(self, api_config: Config.Api):
+    def __init__(self, api_config: Config.Api) -> None:
         """Class for querying the chess.com public api"""
         self.requester = Requester(api_config)
 

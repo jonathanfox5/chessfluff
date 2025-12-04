@@ -18,7 +18,7 @@ class Requester:
     """Wrapper for httpx module that retains data from previous run and configures
     headers to be compatible with chess.com's requirements"""
 
-    def __init__(self, api_config: Config.Api, use_http2: bool = True):
+    def __init__(self, api_config: Config.Api, use_http2: bool = True) -> None:
         """Create new object with headers initialised from environment / .env file
 
         Args:
@@ -31,7 +31,7 @@ class Requester:
         self._create_headers(api_config)
         self._client = httpx.Client(http2=use_http2, follow_redirects=True)
 
-    def _create_headers(self, config: Config.Api):
+    def _create_headers(self, config: Config.Api) -> None:
         """Uses information from config object to create user agent for request header
 
         Args:
