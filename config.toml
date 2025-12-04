@@ -3,6 +3,9 @@ lookup_username = "BorisMcSpider"
 include_opponent_data = true
 analysis_period_months = 1
 
+# Deepest opening in lichess database is 36 moves
+opening_search_depth = 36
+
 [api]
 your_email="32023524+jonathanfox5@users.noreply.github.com"
 your_username="BorisMcSpider"

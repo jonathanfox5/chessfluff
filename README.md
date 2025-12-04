@@ -9,3 +9,7 @@ Created for my own use, you may be able to use it for reference to understand ho
 ### Update Settings
 
 You will need to update `config.toml` with the settings for your analysis.
+
+## Acknowledgements
+
+Uses opening move data from: https://github.com/lichess-org/chess-openings
