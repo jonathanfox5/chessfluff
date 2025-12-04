@@ -1,3 +1,0 @@
-*.html linguist-detectable=false
-gogadget/resources/html/css/* linguist-vendored
-gogadget/resources/html/js/* linguist-vendored
