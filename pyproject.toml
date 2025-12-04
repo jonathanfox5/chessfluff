@@ -1,6 +1,6 @@
 [project]
 name = "chessfluff"
-version = "0.0.2a1"
+version = "0.0.2"
 description = "Application that pulls various stats for a user from chess.com using the public API."
 readme = "README.md"
 authors = [

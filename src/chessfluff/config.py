@@ -150,16 +150,16 @@ class Config:
     class Api:
         """Stores user agent config data"""
 
-        username = ""
-        email = ""
-        app_name = __package__
-        app_version = __version__
-        app_link = __full_source_code__
+        username: str = ""
+        email: str = ""
+        app_name: str = str(__package__)
+        app_version: str = __version__
+        app_link: str = __full_source_code__
 
     @dataclass
     class Analysis:
         """Stores analysis config data"""
 
-        lookup_username = ""
-        include_opponent_data = True
-        analysis_period_months = 9999
+        lookup_username: str = ""
+        include_opponent_data: bool = False
+        analysis_period_months: int = 1

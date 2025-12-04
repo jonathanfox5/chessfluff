@@ -1,7 +1,7 @@
 [analysis]
 lookup_username = "BorisMcSpider"
-include_opponent_data = false
-analysis_period_months = 999
+include_opponent_data = true
+analysis_period_months = 1
 
 [api]
 your_email="32023524+jonathanfox5@users.noreply.github.com"

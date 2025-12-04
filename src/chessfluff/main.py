@@ -31,37 +31,15 @@ def main() -> None:
     _ = extract_data(
         api_config=config.Api(),
         username=config.Analysis.lookup_username,
+        months_to_extract=config.Analysis.analysis_period_months,
         include_opponent_data=config.Analysis.include_opponent_data,
     )
-
-
-def get_config_data(config_path=Path("config.toml")) -> Config:
-    """Read configuration from a toml file
-
-    Args:
-        config_path (Path, optional): Path to toml file. Defaults to Path("config.toml").
-
-    Returns:
-        Config: Configuration data
-    """
-    try:
-        config_path = Path("config.toml")
-        config = Config(config_path)
-    except FileNotFoundError as exc:
-        log.critical(f"Config file cannot be read {config_path.absolute()}, cannot continue {exc}")
-        exit()
-    except (ValueError, KeyError) as exc:
-        log.critical(
-            f"Cannot read the section / variable from {config_path.absolute()}, cannot continue {exc}"
-        )
-        exit()
-
-    return config
 
 
 def extract_data(
     api_config: Config.Api,
     username: str,
+    months_to_extract: int,
     include_opponent_data: bool = True,
     write_json: bool = True,
     write_dataframes: bool = True,
@@ -69,10 +47,12 @@ def extract_data(
     """Extract user, oppoenent and game data from chess.com
 
     Args:
+        api_config (Config.Api): Configuration data for the chess.com API
         username (str): Username to lookup
+        months_to_extract (int): Extract the x most recent months
+        include_opponent_data (bool, optional): Download data about each of the opponents. Defaults to True.
         write_json (bool, optional): Save processed jsons to file. Defaults to True.
         write_dataframes (bool, optional): Save processed dataframes to file. Defaults to True.
-        include_opponent_data (bool, optional): Download data about each of the opponents. Defaults to True.
 
     Returns:
         pd.DataFrame: Dataframe with combined data
@@ -90,20 +70,16 @@ def extract_data(
         )
         exit()
 
-    log.info("Downloading games")
-    raw_game_data = download_games(api, username)
+    raw_game_data = download_games(api, username, months_to_extract=months_to_extract)
     if raw_game_data == []:
         log.critical(f"No games found for {username=}, cannot continue")
         exit()
 
-    log.info("Processing games")
     games = process_games(username, raw_game_data)
 
     if include_opponent_data:
-        log.info("Getting opponent data")
         players.extend(get_opponent_data(api, games))
 
-    log.info("Getting country data")
     countries = get_country_data(api, players)
 
     # Writing data
@@ -134,6 +110,33 @@ def extract_data(
         df_combined.to_excel("out_combined.xlsx", index_label="index")
 
     return df_combined
+
+
+def get_config_data(config_path=Path("config.toml")) -> Config:
+    """Read configuration from a toml file
+
+    Args:
+        config_path (Path, optional): Path to toml file. Defaults to Path("config.toml").
+
+    Returns:
+        Config: Configuration data
+    """
+
+    log.info("Getting configuration data")
+
+    try:
+        config_path = Path("config.toml")
+        config = Config(config_path)
+    except FileNotFoundError as exc:
+        log.critical(f"Config file cannot be read {config_path.absolute()}, cannot continue {exc}")
+        exit()
+    except (ValueError, KeyError) as exc:
+        log.critical(
+            f"Cannot read the section / variable from {config_path.absolute()}, cannot continue {exc}"
+        )
+        exit()
+
+    return config
 
 
 def get_player_data(api: ChessAPI, username: str) -> dict:
@@ -203,7 +206,8 @@ def get_opponent_data(api: ChessAPI, games: list) -> list:
     Returns:
         list: List of dictionaries containing user data
     """
-    # Get unique list of opponent usernames
+
+    log.info("Getting unique list of opponents")
     usernames = []
     for game in games:
         username = game["opponent_name"].lower()
@@ -211,7 +215,7 @@ def get_opponent_data(api: ChessAPI, games: list) -> list:
         if username not in usernames:
             usernames.append(username)
 
-    # Get player data from the api
+    log.info(f"Downloading data for {len(usernames)} opponents")
     players = []
     for username in track(usernames, "Downloading opponent data..."):
         player = get_player_data(api, username)
@@ -233,7 +237,7 @@ def get_country_data(api: ChessAPI, players: list) -> list:
         list: List of dictionaries containing country
     """
 
-    # Get unique list of country api end points
+    log.info("Getting unique list of countries")
     country_urls = []
     for player in players:
         url = player["country_url"]
@@ -241,7 +245,7 @@ def get_country_data(api: ChessAPI, players: list) -> list:
         if url not in country_urls:
             country_urls.append(url)
 
-    # Get country data from the api
+    log.info(f"Downloading data for {len(country_urls)} countries")
     countries = []
     for url in track(country_urls, "Downloading country data"):
         country_data = api.get_from_url(url)
@@ -263,21 +267,34 @@ def get_country_data(api: ChessAPI, players: list) -> list:
     return countries
 
 
-def download_games(api: ChessAPI, username: str) -> list:
+def download_games(api: ChessAPI, username: str, months_to_extract: int) -> list:
     """Downloads all games of a given user
 
     Args:
         api (ChessAPI): API object to look up data
         username (str): Username to look up, must be lower case
+        months_to_extract (int): Extract the x most recent months
 
     Returns:
         list: List of dictionaries containing game data
     """
+
+    log.info("Downloading game listing")
+
     # Get listing of all games
     monthly_game_urls = api.get_game_listing(username).get("archives", [])
 
+    log.info(f"{len(monthly_game_urls)} months of games available")
+
     if monthly_game_urls == []:
         return []
+
+    monthly_game_urls = sorted(monthly_game_urls, reverse=True)
+    monthly_game_urls = monthly_game_urls[:months_to_extract]
+
+    log.info(
+        f"Downloading {len(monthly_game_urls)} months of games, limit in config file = {months_to_extract}"
+    )
 
     # Get games from monthly archives
     games = []
@@ -303,6 +320,9 @@ def process_games(username: str, games: list) -> list:
     Returns:
         list: List of dictionaries of processed data
     """
+
+    log.info(f"Processing {len(games)} games")
+
     processed_games = []
     for game in games:
         # Skip non-rated games
