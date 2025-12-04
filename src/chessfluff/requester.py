@@ -26,7 +26,7 @@ class Requester:
         Args:
             use_http2 (bool, optional): True = http2, request as per chess.com's documentation,
                                         False = http1, seems to be faster.
-                                        Defaults to False.
+                                        Defaults to True.
         """
 
         self._create_headers()
