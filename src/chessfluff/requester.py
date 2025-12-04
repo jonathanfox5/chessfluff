@@ -20,7 +20,7 @@ class Requester:
     """Wrapper for httpx module that retains data from previous run and configures
     headers to be compatible with chess.com's requirements"""
 
-    def __init__(self, use_http2: bool = False):
+    def __init__(self, use_http2: bool = True):
         """Create new object with headers initialised from environment / .env file
 
         Args:
