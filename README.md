@@ -5,12 +5,7 @@ Application that pulls various stats for a user from [chess.com](https://www.che
 Created for my own use, you may be able to use it for reference to understand how to work with the chess.com API.
 
 ## Set up
-### Create settings file
-You will need to create a `.env` file in the root directory with the following information:
 
-```sh
-uaemail=YOUR_EMAIL
-uausername=YOUR_USERNAME
+### Update Settings
 
-lookupuser=USER_TO_LOOKUP
-```
+You will need to update `config.toml` with the settings for your analysis.

@@ -5,10 +5,7 @@ __full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
 
 
 import json
-import os
 from pathlib import Path
-
-from dotenv import load_dotenv
 
 from chessfluff.logger import configure_logger
 from chessfluff.mappings import custom_country_codes
@@ -53,25 +50,6 @@ def iso_to_flag(iso_code: str) -> str:
         flag = custom_country_codes.get(iso_code, "🏳️")
 
     return flag
-
-
-def get_lookup_user() -> str:
-    """Gets username to lookup from environment / .env file (in lower case)
-
-    Returns:
-        str: Username or blank string if not found
-    """
-
-    load_dotenv()
-    username = os.getenv("lookupuser")
-
-    if not username:
-        username = ""
-
-    # Chess.com API endpoints use lowercase for all usernames
-    username = username.lower()
-
-    return username
 
 
 def username_from_profile_url(url: str) -> str:

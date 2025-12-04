@@ -4,13 +4,11 @@ __license__ = "GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.ht
 __full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
 
 
-import os
 from json.decoder import JSONDecodeError
 
 import httpx
-from dotenv import load_dotenv
 
-from chessfluff import __version__
+from chessfluff.config import Config
 from chessfluff.logger import configure_logger
 
 log = configure_logger()
@@ -20,29 +18,27 @@ class Requester:
     """Wrapper for httpx module that retains data from previous run and configures
     headers to be compatible with chess.com's requirements"""
 
-    def __init__(self, use_http2: bool = True):
+    def __init__(self, api_config: Config.Api, use_http2: bool = True):
         """Create new object with headers initialised from environment / .env file
 
         Args:
+            api_config (Config.Api): Api configuration data
             use_http2 (bool, optional): True = http2, request as per chess.com's documentation,
                                         False = http1, seems to be faster.
                                         Defaults to True.
         """
 
-        self._create_headers()
+        self._create_headers(api_config)
         self._client = httpx.Client(http2=use_http2, follow_redirects=True)
 
-    def _create_headers(self):
-        """Pulls data from environment / .env file to create user agent for request header"""
+    def _create_headers(self, config: Config.Api):
+        """Uses information from config object to create user agent for request header
 
-        load_dotenv()
+        Args:
+            config (Config.Api): Configuration data
+        """
 
-        email = os.getenv("uaemail")
-        username = os.getenv("uausername")
-        app_name = __package__
-        app_version = __version__
-
-        user_agent = f"{app_name}/{app_version} (username: {username}; contact: {email})"
+        user_agent = f"{config.app_name}/{config.app_version} (username: {config.username}; contact: {config.email}, url: {config.app_link})"
 
         self.request_headers = {"user-agent": user_agent}
 

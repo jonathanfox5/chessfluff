@@ -3,15 +3,16 @@ __copyright__ = "Copyright 2025, Jonathan Fox"
 __license__ = "GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html"
 __full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
 
+from chessfluff.config import Config
 from chessfluff.requester import Requester
 
 
 class ChessAPI:
     """Class for querying the chess.com public api"""
 
-    def __init__(self):
+    def __init__(self, api_config: Config.Api):
         """Class for querying the chess.com public api"""
-        self.requester = Requester()
+        self.requester = Requester(api_config)
 
     def get_user_metadata(self, username: str) -> dict:
         """Gets metadata for a given user

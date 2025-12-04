@@ -5,26 +5,66 @@ __full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
 
 
 import datetime
+from pathlib import Path
 
 import pandas as pd
 from rich.progress import track
 
 from chessfluff.chessapi import ChessAPI
+from chessfluff.config import Config
 from chessfluff.logger import configure_logger
 from chessfluff.mappings import game_scoring_lookup
-from chessfluff.utils import get_lookup_user, iso_to_flag, json_to_file, username_from_profile_url
+from chessfluff.utils import (
+    iso_to_flag,
+    json_to_file,
+    username_from_profile_url,
+)
 
 log = configure_logger()
 
 
 def main() -> None:
     """Main entry point"""
-    username = get_lookup_user()
-    _ = extract_data(username)
+
+    config = get_config_data()
+
+    _ = extract_data(
+        api_config=config.Api(),
+        username=config.Analysis.lookup_username,
+        include_opponent_data=config.Analysis.include_opponent_data,
+    )
+
+
+def get_config_data(config_path=Path("config.toml")) -> Config:
+    """Read configuration from a toml file
+
+    Args:
+        config_path (Path, optional): Path to toml file. Defaults to Path("config.toml").
+
+    Returns:
+        Config: Configuration data
+    """
+    try:
+        config_path = Path("config.toml")
+        config = Config(config_path)
+    except FileNotFoundError as exc:
+        log.critical(f"Config file cannot be read {config_path.absolute()}, cannot continue {exc}")
+        exit()
+    except (ValueError, KeyError) as exc:
+        log.critical(
+            f"Cannot read the section / variable from {config_path.absolute()}, cannot continue {exc}"
+        )
+        exit()
+
+    return config
 
 
 def extract_data(
-    username: str, write_json: bool = True, write_dataframes: bool = True
+    api_config: Config.Api,
+    username: str,
+    include_opponent_data: bool = True,
+    write_json: bool = True,
+    write_dataframes: bool = True,
 ) -> pd.DataFrame:
     """Extract user, oppoenent and game data from chess.com
 
@@ -32,13 +72,14 @@ def extract_data(
         username (str): Username to lookup
         write_json (bool, optional): Save processed jsons to file. Defaults to True.
         write_dataframes (bool, optional): Save processed dataframes to file. Defaults to True.
+        include_opponent_data (bool, optional): Download data about each of the opponents. Defaults to True.
 
     Returns:
         pd.DataFrame: Dataframe with combined data
     """
 
     log.info("Initialising data extraction")
-    api = ChessAPI()
+    api = ChessAPI(api_config)
     username = username.lower()
 
     log.info(f"Getting data for player, {username}")
@@ -58,8 +99,9 @@ def extract_data(
     log.info("Processing games")
     games = process_games(username, raw_game_data)
 
-    log.info("Getting opponent data")
-    players.extend(get_opponent_data(api, games))
+    if include_opponent_data:
+        log.info("Getting opponent data")
+        players.extend(get_opponent_data(api, games))
 
     log.info("Getting country data")
     countries = get_country_data(api, players)
