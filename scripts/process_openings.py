@@ -8,6 +8,13 @@ import re
 from pathlib import Path
 
 import pandas as pd
+from rich.progress import Progress, TaskID
+
+from chessfluff.config import Config
+from chessfluff.logger import configure_logger
+from chessfluff.stockfish import Stockfish
+
+log = configure_logger()
 
 
 def main() -> None:
@@ -29,15 +36,17 @@ def main() -> None:
     uv run resources/process_openings.py
     """
 
-    print("Processing...")
+    log.info("Getting configuration information")
+    config = Config()
 
-    directory = "resources"
-    output_file = "openings.tsv"
+    log.info("Manipulating lichess data")
+    directory = config.Analysis.opening_database_path.parent
+    output_file = config.Analysis.opening_database_path.name
 
-    # Can change this to a list of a.tsv, etc. if working with the individual files
+    # You can change this to a list of a.tsv, etc. if working with the individual files
     tsv_files = ["lichess_raw_openings.tsv"]
 
-    df_list = [pd.read_csv(Path(directory, file), sep="\t") for file in tsv_files]
+    df_list = [pd.read_csv(directory / file, sep="\t") for file in tsv_files]
     df = pd.concat(df_list, ignore_index=True)
 
     df["family"] = df["name"].apply(lambda x: x.split(":")[0].split(",")[0])
@@ -45,12 +54,33 @@ def main() -> None:
     df["move_count"] = df["pgn"].apply(lambda x: count_moves(x))
 
     df = df[["eco", "family", "variation", "epd", "pgn", "move_count"]]
+    log.info(f"Maximum moves for any = {df['move_count'].max()}")
 
-    print(f"Maximum move count = {df['move_count'].max()}")
+    log.info("Calculating evals")
+    sf = Stockfish(
+        engine_path=config.Stockfish.path,
+        analysis_depth=config.Stockfish.analysis_depth,
+        threads=config.Stockfish.threads,
+        hash_size=config.Stockfish.memory,
+    )
+    with Progress() as sf_progress:
+        sf_task = sf_progress.add_task("Calculating eval using Stockfish", total=df.shape[0])
 
-    df.to_csv(Path(directory, output_file), sep="\t", index=False)
+        with sf as sf_engine:
+            df["eval"] = df.apply(
+                lambda x: get_eval(sf_engine, sf_progress, sf_task, x["epd"]), axis=1
+            )
 
-    print(f"Written to {Path(directory, output_file).absolute()}")
+    log.info("Writing data")
+    df.to_csv(directory / output_file, sep="\t", index=False)
+    log.info(f"Written to {Path(directory, output_file).absolute()}")
+
+
+def get_eval(sf: Stockfish, progress: Progress, task: TaskID, epd: str) -> str | float:
+    result = sf.evaluate_position(epd)
+    progress.update(task, advance=1)
+
+    return result
 
 
 def get_variation(full_name: str, family: str) -> str:

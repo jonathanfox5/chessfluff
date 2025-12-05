@@ -82,6 +82,7 @@ class Config:
         self.Stockfish.path = Path(self._read_string(config_data, "stockfish", "path"))
         self.Stockfish.threads = self._read_int(config_data, "stockfish", "threads")
         self.Stockfish.memory = self._read_int(config_data, "stockfish", "memory")
+        self.Stockfish.analysis_depth = self._read_int(config_data, "stockfish", "analysis_depth")
 
         self.Debug.write_dataframes = self._read_bool(config_data, "debug", "write_dataframes")
         self.Debug.write_json = self._read_bool(config_data, "debug", "write_json")
@@ -183,6 +184,7 @@ class Config:
         threads: int = 1
         memory: int = 16
         path: Path = Path()
+        analysis_depth = 20
 
     @dataclass
     class Debug:

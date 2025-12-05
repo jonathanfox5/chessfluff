@@ -370,6 +370,7 @@ def process_games(
         processed_game["opening_family"] = opening["family"]
         processed_game["opening_variation"] = opening["variation"]
         processed_game["opening_book_moves"] = opening["move_count"]
+        processed_game["opening_eval"] = opening["eval"]
         processed_game["chess.com_opening"] = game["eco"]
 
         processed_games.append(processed_game)

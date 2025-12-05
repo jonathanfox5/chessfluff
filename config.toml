@@ -19,3 +19,4 @@ write_dataframes = true
 threads=16
 memory=4096
 path="C:\\Users\\jf\\Apps\\Builds\\Stockfish-sf_17.1\\stockfish.exe"
+analysis_depth=20
