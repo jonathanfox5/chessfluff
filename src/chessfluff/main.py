@@ -14,6 +14,7 @@ from chessfluff.chessapi import ChessAPI
 from chessfluff.config import Config
 from chessfluff.logger import configure_logger
 from chessfluff.mappings import game_scoring_lookup
+from chessfluff.openings import OpeningDatabase
 from chessfluff.utils import (
     iso_to_flag,
     json_to_file,
@@ -33,6 +34,8 @@ def main() -> None:
         username=config.Analysis.lookup_username,
         months_to_extract=config.Analysis.analysis_period_months,
         include_opponent_data=config.Analysis.include_opponent_data,
+        opening_search_depth=36,
+        opening_database_path=Path("resources", "lichess_eco.tsv"),
     )
 
 
@@ -40,6 +43,8 @@ def extract_data(
     api_config: Config.Api,
     username: str,
     months_to_extract: int,
+    opening_search_depth: int,
+    opening_database_path: Path,
     include_opponent_data: bool = True,
     write_json: bool = True,
     write_dataframes: bool = True,
@@ -75,7 +80,7 @@ def extract_data(
         log.critical(f"No games found for {username=}, cannot continue")
         exit()
 
-    games = process_games(username, raw_game_data)
+    games = process_games(username, raw_game_data, opening_search_depth, opening_database_path)
 
     if include_opponent_data:
         players.extend(get_opponent_data(api, games))
@@ -310,7 +315,9 @@ def download_games(api: ChessAPI, username: str, months_to_extract: int) -> list
     return games
 
 
-def process_games(username: str, games: list) -> list:
+def process_games(
+    username: str, games: list, opening_search_depth: int, opening_database_path: Path
+) -> list:
     """Extracts relevant data from unprocessed game data from Chess.com
 
     Args:
@@ -320,11 +327,13 @@ def process_games(username: str, games: list) -> list:
     Returns:
         list: List of dictionaries of processed data
     """
+    log.info("Loading opening database")
+    opening_db = OpeningDatabase(opening_database_path)
 
     log.info(f"Processing {len(games)} games")
 
     processed_games = []
-    for game in games:
+    for game in track(games, "Processing games..."):
         # Skip non-rated games
         if not game["rated"]:
             continue
@@ -343,7 +352,6 @@ def process_games(username: str, games: list) -> list:
             "time_control": game["time_control"],
             "end_time": datetime.datetime.fromtimestamp(game["end_time"]),
             "time_class": game["time_class"],
-            "eco": game["eco"],
             "player_colour": player_colour,
             "opponent_colour": opponent_colour,
             "player_result": game[player_colour]["result"],
@@ -353,6 +361,15 @@ def process_games(username: str, games: list) -> list:
             "opponent_rating": game[opponent_colour]["rating"],
             "player_rating": game[player_colour]["rating"],
         }
+
+        # Get opening information
+        opening_list = opening_db.get_opening(game["pgn"], opening_search_depth)
+        opening = opening_list[-1]
+
+        processed_game["eco_code"] = opening["eco"]
+        processed_game["opening_family"] = opening["family"]
+        processed_game["opening_variation"] = opening["variation"]
+        processed_game["chess.com_opening"] = game["eco"]
 
         processed_games.append(processed_game)
 
