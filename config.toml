@@ -14,3 +14,8 @@ your_username="BorisMcSpider"
 [debug]
 write_json = true
 write_dataframes = true
+
+[stockfish]
+threads=16
+memory=4096
+path="C:\\Users\\jf\\Apps\\Builds\\Stockfish-sf_17.1\\stockfish.exe"

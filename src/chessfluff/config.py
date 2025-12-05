@@ -75,6 +75,16 @@ class Config:
         self.Analysis.analysis_period_months = self._read_int(
             config_data, "analysis", "analysis_period_months"
         )
+        self.Analysis.opening_database_path = Path(
+            self._read_string(config_data, "analysis", "opening_database_path")
+        )
+
+        self.Stockfish.path = Path(self._read_string(config_data, "stockfish", "path"))
+        self.Stockfish.threads = self._read_int(config_data, "stockfish", "threads")
+        self.Stockfish.memory = self._read_int(config_data, "stockfish", "memory")
+
+        self.Debug.write_dataframes = self._read_bool(config_data, "debug", "write_dataframes")
+        self.Debug.write_json = self._read_bool(config_data, "debug", "write_json")
 
     def _read_string(self, config_data: dict, category: str, variable_name: str) -> str:
         """Reads a string from loaded toml data
@@ -163,3 +173,20 @@ class Config:
         lookup_username: str = ""
         include_opponent_data: bool = False
         analysis_period_months: int = 1
+        opening_search_depth: int = 1
+        opening_database_path: Path = Path()
+
+    @dataclass
+    class Stockfish:
+        """Stores Stockfish config data"""
+
+        threads: int = 1
+        memory: int = 16
+        path: Path = Path()
+
+    @dataclass
+    class Debug:
+        """Stores data used for debugging"""
+
+        write_json: bool = False
+        write_dataframes: bool = False
