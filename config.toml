@@ -5,7 +5,7 @@ analysis_period_months = 12
 
 # Deepest opening in lichess database is 36 moves
 opening_search_depth = 36
-opening_database_path = "resources/lichess_eco.tsv"
+opening_database_path = "resources/openings.tsv"
 
 [api]
 your_email="32023524+jonathanfox5@users.noreply.github.com"

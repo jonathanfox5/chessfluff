@@ -18,19 +18,24 @@ def main() -> None:
     1) Get the tsv files:
     git clone https://github.com/lichess-org/chess-openings
     cd chess-openings
-    pip install chess
+    uv init
+    uv add chess
+    source .venv/bin/activate
     make
+    deactivate
 
     2) Copy the generated tsvs to the same location as this script
     3) Run this script
-    4) Copy the generated file to resources/lichess_eco.tsv
+    uv run resources/process_openings.py
     """
 
     print("Processing...")
 
-    directory = "."
-    tsv_files = ["a.tsv", "b.tsv", "c.tsv", "d.tsv", "e.tsv"]
-    output_file = "lichess_eco.tsv"
+    directory = "resources"
+    output_file = "openings.tsv"
+
+    # Can change this to a list of a.tsv, etc. if working with the individual files
+    tsv_files = ["lichess_raw_openings.tsv"]
 
     df_list = [pd.read_csv(Path(directory, file), sep="\t") for file in tsv_files]
     df = pd.concat(df_list, ignore_index=True)

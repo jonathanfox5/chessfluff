@@ -35,7 +35,7 @@ def main() -> None:
         months_to_extract=config.Analysis.analysis_period_months,
         include_opponent_data=config.Analysis.include_opponent_data,
         opening_search_depth=36,
-        opening_database_path=Path("resources", "lichess_eco.tsv"),
+        opening_database_path=Path("resources", "openings.tsv"),
     )
 
 
