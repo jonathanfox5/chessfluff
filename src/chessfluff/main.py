@@ -13,7 +13,7 @@ from rich.progress import track
 from chessfluff.chessapi import ChessAPI
 from chessfluff.config import Config
 from chessfluff.logger import configure_logger
-from chessfluff.mappings import game_scoring_lookup
+from chessfluff.mappings import game_result_lookup
 from chessfluff.openings import OpeningDatabase
 from chessfluff.utils import (
     iso_to_flag,
@@ -356,7 +356,7 @@ def process_games(
             "opponent_colour": opponent_colour,
             "player_result": game[player_colour]["result"],
             "opponent_result": game[opponent_colour]["result"],
-            "score": game_scoring_lookup.get(game[player_colour]["result"], -1),
+            "simple_result": game_result_lookup.get(game[player_colour]["result"], "Unknown"),
             "opponent_name": game[opponent_colour]["username"],
             "opponent_rating": game[opponent_colour]["rating"],
             "player_rating": game[player_colour]["rating"],
@@ -369,6 +369,7 @@ def process_games(
         processed_game["eco_code"] = opening["eco"]
         processed_game["opening_family"] = opening["family"]
         processed_game["opening_variation"] = opening["variation"]
+        processed_game["opening_book_moves"] = opening["move_count"]
         processed_game["chess.com_opening"] = game["eco"]
 
         processed_games.append(processed_game)

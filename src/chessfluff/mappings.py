@@ -5,22 +5,22 @@ __full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
 
 
 # Map game result to score for win/loss/draw
-game_scoring_lookup = {
-    "win": 1.0,
-    "checkmated": 0.0,
-    "agreed": 0.5,
-    "repetition": 0.5,
-    "timeout": 0.0,
-    "resigned": 0.0,
-    "stalemate": 0.5,
-    "lose": 0.0,
-    "insufficient": 0.5,
-    "50move": 0.5,
-    "abandoned": 0.0,
-    "kingofthehill": 0.0,
-    "threecheck": 0.0,
-    "timevsinsufficient": 0.5,
-    "bughousepartnerlose": 0.0,
+game_result_lookup = {
+    "win": "win",
+    "checkmated": "loss",
+    "agreed": "draw",
+    "repetition": "draw",
+    "timeout": "loss",
+    "resigned": "loss",
+    "stalemate": "draw",
+    "lose": "loss",
+    "insufficient": "draw",
+    "50move": "draw",
+    "abandoned": "loss",
+    "kingofthehill": "loss",
+    "threecheck": "loss",
+    "timevsinsufficient": "draw",
+    "bughousepartnerlose": "loss",
 }
 
 # Custom countries used by chess.com that don't conform to standard ISO codes
