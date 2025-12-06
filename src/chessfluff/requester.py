@@ -4,6 +4,7 @@ __license__ = "GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.ht
 __full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
 
 
+import time
 from json.decoder import JSONDecodeError
 
 import httpx
@@ -18,7 +19,13 @@ class Requester:
     """Wrapper for httpx module that retains data from previous run and configures
     headers to be compatible with chess.com's requirements"""
 
-    def __init__(self, api_config: Config.Api, use_http2: bool = True) -> None:
+    def __init__(
+        self,
+        api_config: Config.Api,
+        use_http2: bool = True,
+        rate_limit_attempts: int = 3,
+        rate_limit_timeout: float = 60.1,
+    ) -> None:
         """Create new object with headers initialised from environment / .env file
 
         Args:
@@ -30,6 +37,11 @@ class Requester:
 
         self._create_headers(api_config)
         self._client = httpx.Client(http2=use_http2, follow_redirects=True)
+
+        self.rate_limited = False
+        self.rate_limit_attempts = rate_limit_attempts
+        self.rate_limit_timeout = rate_limit_timeout
+        self.rate_limit_last_timestamp = 0.0
 
     def _create_headers(self, config: Config.Api) -> None:
         """Uses information from config object to create user agent for request header
@@ -78,11 +90,19 @@ class Requester:
         self.response_headers = {}
         self.request_url = url
 
-        try:
-            r = self._client.get(url=url, headers=self.request_headers)
-        except httpx.RequestError as exc:
-            log.error(f"An error occurred while requesting {exc.request.url!r}. {exc.args}")
-            return None
+        for i in range(0, self.rate_limit_attempts):
+            self._wait_rate_limit_timeout()
+
+            try:
+                r = self._client.get(url=url, headers=self.request_headers)
+            except httpx.RequestError as exc:
+                log.error(f"An error occurred while requesting {exc.request.url!r}. {exc.args}")
+                return None
+
+            if r.status_code == httpx.codes.TOO_MANY_REQUESTS:
+                self._set_rate_limit_timeout()
+            else:
+                break
 
         self.response_headers = dict(r.headers)
         self.status_code = r.status_code
@@ -94,3 +114,22 @@ class Requester:
         self.success = True
 
         return r
+
+    def _wait_rate_limit_timeout(self) -> None:
+        if not self.rate_limited:
+            return None
+
+        current_time = time.time()
+
+        wait_time = self.rate_limit_timeout - (current_time - self.rate_limit_last_timestamp)
+
+        if wait_time > 0:
+            log.info(f"Rate limit reached, code 429 received. Waiting {wait_time} seconds")
+            time.sleep(wait_time)
+
+        self.rate_limited = False
+
+    def _set_rate_limit_timeout(self) -> None:
+        log.info("Rate limit reached, code 429 received. Timeout will be applied to next request")
+        self.rate_limited = True
+        self.rate_limit_last_timestamp = time.time()
