@@ -90,7 +90,7 @@ class Requester:
         self.response_headers = {}
         self.request_url = url
 
-        for i in range(0, self.rate_limit_attempts):
+        for _ in range(0, self.rate_limit_attempts):
             self._wait_rate_limit_timeout()
 
             try:
