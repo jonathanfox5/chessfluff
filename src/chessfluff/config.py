@@ -81,6 +81,9 @@ class Config:
         self.Analysis.opening_database_path = Path(
             self._read_string(config_data, "analysis", "opening_database_path")
         )
+        self.Analysis.opening_search_depth = self._read_int(
+            config_data, "analysis", "opening_search_depth"
+        )
 
         self.Stockfish.path = Path(self._read_string(config_data, "stockfish", "path"))
         self.Stockfish.threads = self._read_int(config_data, "stockfish", "threads")

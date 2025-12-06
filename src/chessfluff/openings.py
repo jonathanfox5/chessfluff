@@ -37,6 +37,7 @@ class OpeningDatabase:
                 "epd": "",
                 "pgn": "",
                 "move_count": 0,
+                "eval": 0,
             }
         ]
 
