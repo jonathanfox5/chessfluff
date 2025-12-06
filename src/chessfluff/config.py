@@ -65,6 +65,9 @@ class Config:
 
         self.Api.username = self._read_string(config_data, "api", "your_username")
         self.Api.email = self._read_string(config_data, "api", "your_email")
+        self.Api.rate_limit_timeout = self._read_float(config_data, "api", "rate_limit_timeout")
+        self.Api.rate_limit_attempts = self._read_int(config_data, "api", "rate_limit_attempts")
+        self.Api.use_http2 = self._read_bool(config_data, "api", "use_http2")
 
         self.Analysis.lookup_username = self._read_string(
             config_data, "analysis", "lookup_username"
@@ -157,6 +160,28 @@ class Config:
 
         return value
 
+    def _read_float(self, config_data: dict, category: str, variable_name: str) -> float:
+        """Reads a float from loaded toml data
+
+        Args:
+            config_data (dict): Dictionary of toml data
+            category (str): Toml category
+            variable_name (str): Toml variable
+
+        Raises:
+            KeyError: Variable not found in config file
+            ValueError: If data cannot be converted to an integer
+
+        Returns:
+            float: Config value
+        """
+        try:
+            value = float(config_data[category][variable_name])
+        except ValueError:
+            raise ValueError(f"Variable {category}{variable_name} is not a float")
+
+        return value
+
     @dataclass
     class Api:
         """Stores user agent config data"""
@@ -166,6 +191,9 @@ class Config:
         app_name: str = str(__package__)
         app_version: str = __version__
         app_link: str = __full_source_code__
+        use_http2: bool = False
+        rate_limit_attempts: int = 1
+        rate_limit_timeout: float = 0.0
 
     @dataclass
     class Analysis:

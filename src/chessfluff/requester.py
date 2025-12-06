@@ -21,26 +21,20 @@ class Requester:
 
     def __init__(
         self,
-        api_config: Config.Api,
-        use_http2: bool = True,
-        rate_limit_attempts: int = 3,
-        rate_limit_timeout: float = 60.1,
+        config: Config.Api,
     ) -> None:
         """Create new object with headers initialised from environment / .env file
 
         Args:
             api_config (Config.Api): Api configuration data
-            use_http2 (bool, optional): True = http2, request as per chess.com's documentation,
-                                        False = http1, seems to be faster.
-                                        Defaults to True.
         """
 
-        self._create_headers(api_config)
-        self._client = httpx.Client(http2=use_http2, follow_redirects=True)
+        self._create_headers(config)
+        self._client = httpx.Client(http2=config.use_http2, follow_redirects=True)
 
         self.rate_limited = False
-        self.rate_limit_attempts = rate_limit_attempts
-        self.rate_limit_timeout = rate_limit_timeout
+        self.rate_limit_attempts = config.rate_limit_attempts
+        self.rate_limit_timeout = config.rate_limit_timeout
         self.rate_limit_last_timestamp = 0.0
 
     def _create_headers(self, config: Config.Api) -> None:

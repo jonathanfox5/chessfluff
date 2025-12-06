@@ -27,45 +27,20 @@ log = configure_logger()
 def main() -> None:
     """Main entry point"""
 
-    config = get_config_data()
-
-    _ = extract_data(
-        api_config=config.Api(),
-        username=config.Analysis.lookup_username,
-        months_to_extract=config.Analysis.analysis_period_months,
-        include_opponent_data=config.Analysis.include_opponent_data,
-        opening_search_depth=36,
-        opening_database_path=Path("resources", "openings.tsv"),
-    )
+    _ = extract_data()
 
 
-def extract_data(
-    api_config: Config.Api,
-    username: str,
-    months_to_extract: int,
-    opening_search_depth: int,
-    opening_database_path: Path,
-    include_opponent_data: bool = True,
-    write_json: bool = True,
-    write_dataframes: bool = True,
-) -> pd.DataFrame:
-    """Extract user, oppoenent and game data from chess.com
-
-    Args:
-        api_config (Config.Api): Configuration data for the chess.com API
-        username (str): Username to lookup
-        months_to_extract (int): Extract the x most recent months
-        include_opponent_data (bool, optional): Download data about each of the opponents. Defaults to True.
-        write_json (bool, optional): Save processed jsons to file. Defaults to True.
-        write_dataframes (bool, optional): Save processed dataframes to file. Defaults to True.
+def extract_data() -> pd.DataFrame:
+    """Extract user, oppoenent and game data from chess.com. Configured by settings in config.toml
 
     Returns:
         pd.DataFrame: Dataframe with combined data
     """
 
     log.info("Initialising data extraction")
-    api = ChessAPI(api_config)
-    username = username.lower()
+    config = Config()
+    api = ChessAPI(config.Api())
+    username = config.Analysis.lookup_username.lower()
 
     log.info(f"Getting data for player, {username}")
     players = [get_player_data(api, username)]
@@ -75,30 +50,29 @@ def extract_data(
         )
         exit()
 
-    raw_game_data = download_games(api, username, months_to_extract=months_to_extract)
+    raw_game_data = download_games(
+        api=api, username=username, months_to_extract=config.Analysis.analysis_period_months
+    )
     if raw_game_data == []:
         log.critical(f"No games found for {username=}, cannot continue")
         exit()
 
-    games = process_games(username, raw_game_data, opening_search_depth, opening_database_path)
+    games = process_games(
+        username=username,
+        games=raw_game_data,
+        opening_search_depth=config.Analysis.opening_search_depth,
+        opening_database_path=config.Analysis.opening_database_path,
+    )
 
-    if include_opponent_data:
+    if config.Analysis.include_opponent_data:
         players.extend(get_opponent_data(api, games))
 
     countries = get_country_data(api, players)
-
-    # Writing data
-    if write_json:
-        log.info("Writing JSON files")
-        json_to_file(players, "out_players.json")
-        json_to_file(games, "out_games.json")
-        json_to_file(countries, "out_countries.json")
 
     log.info("Merging data")
     df_games = pd.DataFrame(games)
     df_players = pd.DataFrame(players)
     df_countries = pd.DataFrame(countries)
-
     df_combined = df_games.merge(
         right=df_players, how="left", left_on="opponent_name", right_on="formatted_username"
     )
@@ -107,7 +81,14 @@ def extract_data(
         right=df_countries, how="left", left_on="country_url", right_on="country_url"
     )
 
-    if write_dataframes:
+    # Writing data
+    if config.Debug.write_json:
+        log.info("Writing JSON files")
+        json_to_file(players, "out_players.json")
+        json_to_file(games, "out_games.json")
+        json_to_file(countries, "out_countries.json")
+
+    if config.Debug.write_dataframes:
         log.info("Writing dataframes to spreadsheets")
         df_games.to_excel("out_games.xlsx", index_label="index")
         df_players.to_excel("out_players.xlsx", index_label="index")
