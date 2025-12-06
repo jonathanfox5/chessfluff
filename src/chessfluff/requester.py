@@ -29,7 +29,9 @@ class Requester:
             api_config (Config.Api): Api configuration data
         """
 
-        self._create_headers(config)
+        self.request_headers = {}
+        self._set_user_agent(config)
+
         self._client = httpx.Client(http2=config.use_http2, follow_redirects=True)
 
         self.rate_limited = False
@@ -37,7 +39,10 @@ class Requester:
         self.rate_limit_timeout = config.rate_limit_timeout
         self.rate_limit_last_timestamp = 0.0
 
-    def _create_headers(self, config: Config.Api) -> None:
+    def set_header_parameter(self, parameter: str, value: str) -> None:
+        self.request_headers[parameter] = value
+
+    def _set_user_agent(self, config: Config.Api) -> None:
         """Uses information from config object to create user agent for request header
 
         Args:
@@ -46,20 +51,21 @@ class Requester:
 
         user_agent = f"{config.app_name}/{config.app_version} (username: {config.username}; contact: {config.email}, url: {config.app_link})"
 
-        self.request_headers = {"user-agent": user_agent}
+        self.set_header_parameter("user-agent", user_agent)
 
-    def get_json(self, url: str) -> dict:
+    def get_json(self, url: str, query_params: dict | None = None) -> dict:
         """Gets JSON data from an end point using a GET request
 
         Args:
             url (str): End point URL
+            query_params (dict | None): Query parameters for the get request. Defaults to None
 
         Returns:
             dict: json data converted to dict, empty dictionary returned on error
         """
 
         self.response_json = {}
-        r = self._get(url=url)
+        r = self._get(url=url, query_params=query_params)
 
         if r:
             try:
@@ -70,11 +76,12 @@ class Requester:
 
         return self.response_json
 
-    def _get(self, url: str) -> httpx.Response | None:
+    def _get(self, url: str, query_params: dict | None = None) -> httpx.Response | None:
         """Wrapper for httpx.get() with some error handling
 
         Args:
             url (str): End point URL
+            query_params (dict | None): Query parameters for the get request. Defaults to None
 
         Returns:
             httpx.Response | None: Returns the response object, otherwise None if error
@@ -88,7 +95,7 @@ class Requester:
             self._wait_rate_limit_timeout()
 
             try:
-                r = self._client.get(url=url, headers=self.request_headers)
+                r = self._client.get(url=url, headers=self.request_headers, params=query_params)
             except httpx.RequestError as exc:
                 log.error(f"An error occurred while requesting {exc.request.url!r}. {exc.args}")
                 return None
