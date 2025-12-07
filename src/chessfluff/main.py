@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 from rich.progress import track
 
-from chessfluff.chessapi import ChessAPI
+from chessfluff.chessdotcom_api import ChessdotcomAPI
 from chessfluff.config import Config
 from chessfluff.logger import configure_logger
 from chessfluff.mappings import game_result_lookup
@@ -39,7 +39,7 @@ def extract_data() -> pd.DataFrame:
 
     log.info("Initialising data extraction")
     config = Config()
-    api = ChessAPI(config)
+    api = ChessdotcomAPI(config)
     username = config.Analysis.lookup_username.lower()
 
     log.info(f"Getting data for player, {username}")
@@ -125,7 +125,7 @@ def get_config_data(config_path=Path("config.toml")) -> Config:
     return config
 
 
-def get_player_data(api: ChessAPI, username: str) -> dict:
+def get_player_data(api: ChessdotcomAPI, username: str) -> dict:
     """Gets selected metadata and stats for a given user
 
     Args:
@@ -182,7 +182,7 @@ def get_player_data(api: ChessAPI, username: str) -> dict:
     return player
 
 
-def get_opponent_data(api: ChessAPI, games: list) -> list:
+def get_opponent_data(api: ChessdotcomAPI, games: list) -> list:
     """Gets metadata / stats for opponents faced in a set of games
 
     Args:
@@ -212,7 +212,7 @@ def get_opponent_data(api: ChessAPI, games: list) -> list:
     return players
 
 
-def get_country_data(api: ChessAPI, players: list) -> list:
+def get_country_data(api: ChessdotcomAPI, players: list) -> list:
     """Gets country data for a list of players
 
     Args:
@@ -253,7 +253,7 @@ def get_country_data(api: ChessAPI, players: list) -> list:
     return countries
 
 
-def download_games(api: ChessAPI, username: str, months_to_extract: int) -> list:
+def download_games(api: ChessdotcomAPI, username: str, months_to_extract: int) -> list:
     """Downloads all games of a given user
 
     Args:

@@ -6,9 +6,12 @@ __uses_code_from__ = {
     "https://github.com/jonathanfox5/gogadget/blob/main/src/gogadget/config.py": "AGPLv3+"
 }
 
+import os
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 from chessfluff import __version__
 
@@ -29,7 +32,8 @@ class Config:
         """
 
         config_data = self._read_config_data(config_path)
-        self._read_all_variables(config_data)
+        self._read_toml_variables(config_data)
+        self._read_env_variables()
 
     def _read_config_data(self, config_path: Path) -> dict:
         """_summary_
@@ -52,7 +56,15 @@ class Config:
 
         return config_data
 
-    def _read_all_variables(self, config_data: dict) -> None:
+    def _read_env_variables(self) -> None:
+        load_dotenv()
+
+        # Email is overwritten if it's specified in the .env
+        self.Api.email = os.getenv("ua_email", self.Api.email)
+
+        self.Api.lichess_key = os.getenv("lichess_key")
+
+    def _read_toml_variables(self, config_data: dict) -> None:
         """Reads all data from a toml dict into custom classes
 
         Args:
@@ -199,6 +211,7 @@ class Config:
         follow_redirects = True
         rate_limit_attempts: int = 1
         rate_limit_timeout: float = 0.0
+        lichess_key: str | None = None
 
     @dataclass
     class Analysis:

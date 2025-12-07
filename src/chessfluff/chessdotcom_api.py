@@ -7,7 +7,7 @@ from chessfluff.config import Config
 from chessfluff.requester import Requester
 
 
-class ChessAPI:
+class ChessdotcomAPI:
     """Class for querying the chess.com public api"""
 
     def __init__(self, config: Config) -> None:
