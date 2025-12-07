@@ -10,9 +10,13 @@ from chessfluff.requester import Requester
 class ChessAPI:
     """Class for querying the chess.com public api"""
 
-    def __init__(self, api_config: Config.Api) -> None:
-        """Class for querying the chess.com public api"""
-        self.requester = Requester(api_config)
+    def __init__(self, config: Config) -> None:
+        """Class for querying the chess.com public api
+
+        Args:
+            config (Config): Configuration data
+        """
+        self.requester = Requester(config)
 
     def get_user_metadata(self, username: str) -> dict:
         """Gets metadata for a given user

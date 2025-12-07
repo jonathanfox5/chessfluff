@@ -39,7 +39,7 @@ def extract_data() -> pd.DataFrame:
 
     log.info("Initialising data extraction")
     config = Config()
-    api = ChessAPI(config.Api())
+    api = ChessAPI(config)
     username = config.Analysis.lookup_username.lower()
 
     log.info(f"Getting data for player, {username}")

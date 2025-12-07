@@ -21,23 +21,23 @@ class Requester:
 
     def __init__(
         self,
-        config: Config.Api,
+        config: Config,
     ) -> None:
         """Create new object with headers initialised from environment / .env file
 
         Args:
-            api_config (Config.Api): Api configuration data
+            config (Config): Configuration data
         """
 
         self.request_headers = {}
         self._set_user_agent(config)
 
         self._client = httpx.Client(
-            http2=config.use_http2, follow_redirects=config.follow_redirects
+            http2=config.Api.use_http2, follow_redirects=config.Api.follow_redirects
         )
 
-        self.rate_limit_attempts = config.rate_limit_attempts
-        self.rate_limit_timeout = config.rate_limit_timeout
+        self.rate_limit_attempts = config.Api.rate_limit_attempts
+        self.rate_limit_timeout = config.Api.rate_limit_timeout
 
         self.rate_limited = False
         self.rate_limit_last_timestamp = 0.0
@@ -45,14 +45,14 @@ class Requester:
     def set_header_parameter(self, parameter: str, value: str) -> None:
         self.request_headers[parameter] = value
 
-    def _set_user_agent(self, config: Config.Api) -> None:
+    def _set_user_agent(self, config: Config) -> None:
         """Uses information from config object to create user agent for request header
 
         Args:
-            config (Config.Api): Configuration data
+            config (Config): Configuration data
         """
 
-        user_agent = f"{config.app_name}/{config.app_version} (username: {config.username}; contact: {config.email}, url: {config.app_link})"
+        user_agent = f"{config.Api.app_name}/{config.Api.app_version} (username: {config.Api.username}; contact: {config.Api.email}, url: {config.Api.app_link})"
 
         self.set_header_parameter("user-agent", user_agent)
 
