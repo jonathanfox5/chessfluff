@@ -10,9 +10,10 @@ opening_database_path = "resources/openings.tsv"
 [api]
 your_email = "32023524+jonathanfox5@users.noreply.github.com"
 your_username = "BorisMcSpider"
-use_http2 = true
 rate_limit_attempts = 3
 rate_limit_timeout = 60.1
+use_http2 = true
+follow_redirects = true
 
 [debug]
 write_json = true

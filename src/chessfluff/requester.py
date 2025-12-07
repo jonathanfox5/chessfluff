@@ -32,11 +32,14 @@ class Requester:
         self.request_headers = {}
         self._set_user_agent(config)
 
-        self._client = httpx.Client(http2=config.use_http2, follow_redirects=True)
+        self._client = httpx.Client(
+            http2=config.use_http2, follow_redirects=config.follow_redirects
+        )
 
-        self.rate_limited = False
         self.rate_limit_attempts = config.rate_limit_attempts
         self.rate_limit_timeout = config.rate_limit_timeout
+
+        self.rate_limited = False
         self.rate_limit_last_timestamp = 0.0
 
     def set_header_parameter(self, parameter: str, value: str) -> None:

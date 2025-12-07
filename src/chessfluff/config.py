@@ -68,6 +68,7 @@ class Config:
         self.Api.rate_limit_timeout = self._read_float(config_data, "api", "rate_limit_timeout")
         self.Api.rate_limit_attempts = self._read_int(config_data, "api", "rate_limit_attempts")
         self.Api.use_http2 = self._read_bool(config_data, "api", "use_http2")
+        self.Api.follow_redirects = self._read_bool(config_data, "api", "follow_redirects")
 
         self.Analysis.lookup_username = self._read_string(
             config_data, "analysis", "lookup_username"
@@ -195,6 +196,7 @@ class Config:
         app_version: str = __version__
         app_link: str = __full_source_code__
         use_http2: bool = False
+        follow_redirects = True
         rate_limit_attempts: int = 1
         rate_limit_timeout: float = 0.0
 
