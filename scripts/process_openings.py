@@ -5,12 +5,14 @@ __full_source_code__ = "https://github.com/jonathanfox5/chessfluff"
 
 
 import re
+import time
 from pathlib import Path
 
 import pandas as pd
-from rich.progress import Progress, TaskID
+from rich.progress import Progress, TaskID, track
 
 from chessfluff.config import Config
+from chessfluff.lichess_api import LichessAPI
 from chessfluff.logger import configure_logger
 from chessfluff.stockfish import Stockfish
 
@@ -71,9 +73,60 @@ def main() -> None:
                 lambda x: get_eval(sf_engine, sf_progress, sf_task, x["epd"]), axis=1
             )
 
+    log.info("Getting lichess stats")
+    lichess_stats = get_lichess_stats(df["epd"].to_list(), config)
+    df = df.merge(right=lichess_stats, how="left", left_on="epd", right_on="epd")
+
     log.info("Writing data")
     df.to_csv(directory / output_file, sep="\t", index=False)
     log.info(f"Written to {Path(directory, output_file).absolute()}")
+
+
+def get_lichess_stats(epds: list, config: Config) -> pd.DataFrame:
+    api = LichessAPI(config)
+
+    results = []
+    for epd in track(epds, "Downloading lichess stats..."):
+        # Query API, sleep for a second to avoid triggering rate limit
+        time.sleep(1.001)
+        master_stats = api.get_masters_stats(epd)
+        time.sleep(1.001)
+        lichess_game_stats = api.get_opening_stats(epd)
+
+        master_white_games = master_stats.get("white", 0)
+        master_black_games = master_stats.get("black", 0)
+        master_draw_games = master_stats.get("draws", 0)
+        master_total_games = master_white_games + master_black_games + master_draw_games
+
+        lichess_white_games = lichess_game_stats.get("white", 0)
+        lichess_black_games = lichess_game_stats.get("black", 0)
+        lichess_draw_games = lichess_game_stats.get("draws", 0)
+        lichess_total_games = lichess_white_games + lichess_black_games + lichess_draw_games
+
+        result = {
+            "epd": epd,
+            "master_games": master_total_games,
+            "master_white_win": calc_percentage(master_white_games, master_total_games),
+            "master_black_win": calc_percentage(master_black_games, master_total_games),
+            "master_draw": calc_percentage(master_draw_games, master_total_games),
+            "lichess_games": lichess_total_games,
+            "lichess_white_win": calc_percentage(lichess_white_games, lichess_total_games),
+            "lichess_black_win": calc_percentage(lichess_black_games, lichess_total_games),
+            "lichess_draw": calc_percentage(lichess_draw_games, lichess_total_games),
+        }
+
+        results.append(result)
+
+    return pd.DataFrame(results)
+
+
+def calc_percentage(numerator: int | float, denominator: int | float) -> float:
+    try:
+        result = numerator / denominator * 100.0
+    except ZeroDivisionError:
+        result = 0.0
+
+    return result
 
 
 def get_eval(sf: Stockfish, progress: Progress, task: TaskID, epd: str) -> str | float:
