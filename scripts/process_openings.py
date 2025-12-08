@@ -83,6 +83,15 @@ def main() -> None:
 
 
 def get_lichess_stats(epds: list, config: Config) -> pd.DataFrame:
+    """Pulls win / loss / draw statistics for master games and lichess games
+
+    Args:
+        epds (list): List of positions to look up, in EPD format
+        config (Config): Configuration data for the api
+
+    Returns:
+        pd.DataFrame: Dataframe containing the stats for each EPD.
+    """
     api = LichessAPI(config)
 
     results = []
@@ -121,6 +130,15 @@ def get_lichess_stats(epds: list, config: Config) -> pd.DataFrame:
 
 
 def calc_percentage(numerator: int | float, denominator: int | float) -> float:
+    """Calculate percentage: numerator / deonminator * 100
+
+    Args:
+        numerator (int | float): Numerator for calculation
+        denominator (int | float): _description_
+
+    Returns:
+        float: Result of calculation. Dividing by zero returns 0.0.
+    """
     try:
         result = numerator / denominator * 100.0
     except ZeroDivisionError:
@@ -130,6 +148,17 @@ def calc_percentage(numerator: int | float, denominator: int | float) -> float:
 
 
 def get_eval(sf: Stockfish, progress: Progress, task: TaskID, epd: str) -> str | float:
+    """Calculate the eval (from White's perspective) of a given position
+
+    Args:
+        sf (Stockfish): Stockfish object to run the calculation
+        progress (Progress): Rich progress object for display purposes
+        task (TaskID): Rich progress object for display purposes
+        epd (str): Position to evaluate
+
+    Returns:
+        str | float: One of "#x" (checkmate) "Mx" (mate in x) or x (eval in full pawns). Presence of a negative indicates black advantage.
+    """
     result = sf.evaluate_position(epd)
     progress.update(task, advance=1)
 
