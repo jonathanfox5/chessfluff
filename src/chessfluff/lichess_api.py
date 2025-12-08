@@ -43,7 +43,7 @@ class LichessAPI:
             "moves": 0,
             "recentGames": 0,
             "speeds": "blitz,rapid,classical",
-            "ratings": "1200,1400,1600,1800,2000,2200,2500",
+            "ratings": "1400,1600,1800,2000,2200,2500",
         }
 
         response = self.requester.get_json(url, params)
