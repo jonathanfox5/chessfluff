@@ -87,7 +87,7 @@ class Stockfish:
             return "#-0"
 
         response = self.engine.analyse(
-            board, limit=chess.engine.Limit(depth=self.analysis_depth), info=chess.engine.INFO_SCORE
+            board, limit=chess.engine.Limit(nodes=self.analysis_depth), info=chess.engine.INFO_SCORE
         )
 
         pov_score: chess.engine.PovScore | None = response.get("score")
