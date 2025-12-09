@@ -12,22 +12,49 @@ import pandas as pd
 
 
 class OpeningDatabase:
-    opening_database: pd.DataFrame
+    """Looks up opening data from the database"""
 
     def __init__(self, opening_database_path: Path) -> None:
+        """Looks up opening data from the database
+
+        Args:
+            opening_database_path (Path): Path of opening database file
+        """
         self._load_opening_database(opening_database_path)
 
     def _load_opening_database(self, opening_database_path: Path) -> None:
+        """Read database in from tsv file
+
+        Args:
+            opening_database_path (Path): Path of opening database file
+        """
         df = pd.read_csv(opening_database_path, sep="\t")
         df["variation"] = df["variation"].fillna("")
         self.opening_database = df
 
     def _load_pgn(self, pgn: str) -> chess.pgn.Game | None:
+        """Create a game from a pgn
+
+        Args:
+            pgn (str): Game in pgn format
+
+        Returns:
+            chess.pgn.Game | None: Chess game
+        """
         game = chess.pgn.read_game(io.StringIO(pgn))
 
         return game
 
     def get_opening(self, pgn: str, search_depth: int) -> list[dict]:
+        """Get data about openings in a given game
+
+        Args:
+            pgn (str): Game in pgn format
+            search_depth (int): Number of moves to check for named openings
+
+        Returns:
+            list[dict]: List of dictionaries containing opening data
+        """
         blank_result = [
             {
                 "eco": "X00",
@@ -38,6 +65,14 @@ class OpeningDatabase:
                 "pgn": "",
                 "move_count": 0,
                 "eval": 0,
+                "master_games": 0,
+                "master_white_win": 0.0,
+                "master_black_win": 0.0,
+                "master_draw": 0.0,
+                "lichess_games": 0,
+                "lichess_white_win": 0.0,
+                "lichess_black_win": 0.0,
+                "lichess_draw": 0.0,
             }
         ]
 
@@ -69,6 +104,14 @@ class OpeningDatabase:
         return openings
 
     def epd_to_opening(self, epd: str) -> dict | None:
+        """Looks up a position in the database to find opening information
+
+        Args:
+            epd (str): Position in EPD format
+
+        Returns:
+            dict | None: Dictionary of opening data
+        """
         df: pd.DataFrame = self.opening_database[self.opening_database["epd"] == epd]
 
         if df.shape[0] == 0:
