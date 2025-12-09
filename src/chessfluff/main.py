@@ -347,12 +347,21 @@ def process_games(
         opening_list = opening_db.get_opening(game["pgn"], opening_search_depth)
         opening = opening_list[-1]
 
-        processed_game["eco_code"] = opening["eco"]
+        processed_game["opening_eco"] = opening["eco"]
         processed_game["opening_family"] = opening["family"]
         processed_game["opening_variation"] = opening["variation"]
         processed_game["opening_book_moves"] = opening["move_count"]
         processed_game["opening_eval"] = opening["eval"]
-        processed_game["chess.com_opening"] = game["eco"]
+        processed_game["opening_master_games"] = opening["master_games"]
+        processed_game["opening_master_white_win"] = opening["master_white_win"]
+        processed_game["opening_master_black_win"] = opening["master_black_win"]
+        processed_game["opening_master_draw"] = opening["master_draw"]
+        processed_game["opening_lichess_games"] = opening["lichess_games"]
+        processed_game["opening_lichess_white_win"] = opening["lichess_white_win"]
+        processed_game["opening_lichess_black_win"] = opening["lichess_black_win"]
+        processed_game["opening_lichess_draw"] = opening["lichess_draw"]
+
+        processed_game["opening_chessdotcom"] = game["eco"]
 
         processed_games.append(processed_game)
 
